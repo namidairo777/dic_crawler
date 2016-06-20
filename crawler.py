@@ -4,23 +4,16 @@
 #crawl data from Yahoo rss and get meta information from wiki
 #Check whether noun is stored in Neologd
 
+#dictionary-crawler
+#Edited by TANG XIAO
+#2016/06/20
+
 import MeCab
 import urllib
 import lxml.html
 import lxml.etree as et
 import time
 import csv
-
-#input = u'よく東日本旅客鉄道が好き'
-#mt = MeCab.Tagger("-Ochasen -d /usr/local/lib/mecab/dic/mecab-ipadic-neologd/")
-#input = input.encode("utf-8")
-#node = mt.parseToNode(input)
-#while node:#
-#	print node.surface, node.feature
-#	node = node.next
-
-#def analyze_sentence():
-
 
 #get all rss information from Yahoo news rss list
 def get_rss_from_Yahoo(yahoo):
@@ -126,9 +119,21 @@ def check_entry(entries):
 			continue
 		else:				
 			meta = get_meta_from_wiki(wiki+entry[0], entry[0])
+			if temp != "":
+				#print(temp+entry[0])
+				pron = get_pronunciation(wiki+temp+entry[0], temp+entry[0])
+				if pron != -1:
+					data = []
+					data.append(temp+entry[0])
+					data.append(pron)
+					data.append(entry[1])
+					data.append("new")
+					write_add_csv(new_entry_file, data)
+					j = j+1
+
 			if meta != -1:
 				
-				data = [];
+				data = []
 				#print(entry[0]+"+"+meta)
 				data.append(entry[0])
 				data.append(meta)
@@ -136,19 +141,12 @@ def check_entry(entries):
 				data.append(entry[1])
 				data.append("meta");
 				#print(data)
-				write_add_csv(new_meta_file, data)	
+				##write_add_csv(new_meta_file, data)	
 				i = i+1
+				temp = entry[0]
+
 			
-			if temp != "":
-				pron = get_pronunciation(wiki+entry[0], temp+entry[0])
-				if pron != -1:
-					data = [];
-					data.append(entry[0])
-					data.append(pron)
-					data.append(entry[1])
-					data.append("new")
-					write_add_csv(new_entry_file, data)
-					j = j+1
+			
 
 			info = 'meta:' + str(i) + ';new:' + str(j)
 	    	print(info)
@@ -158,7 +156,7 @@ def check_entry(entries):
 
 def get_pronunciation(wiki, entry):
 	print("start get_pronunciation")
-	result = [];
+	result = "";
 
 	html_string = urllib.urlopen(wiki)
 	
@@ -166,17 +164,24 @@ def get_pronunciation(wiki, entry):
 	html_string.close();
 
 	titlediv = html_element.xpath('.//div[@id="mw-content-text"]')
+	
+	contentSub = html_element.xpath('.//div[@id="contentSub"]')
+	
 
-	if titlediv != -1:
-		p = titlediv[0].xpath('descendant::p')
+	p = titlediv[0].xpath('descendant::p')
+
+	if (len(p) != 0) and (contentSub[0].text_content().encode("utf-8").find("転送") == -1):
+		
 		pron = p[0].text_content().encode("utf-8");
-		start = pron.find("(")
-		end = pron.find(")")
-		pron = pron[start+1:end-1]
+		start = pron.find("（")
+		end = pron.find("）")
+		
+		result = pron[start+3:end]
+		#print(result)
 		print("end get_pronunciation")
-		return pron
+		return result
 	else:
-		print("end get_pronunciation")
+		print("fail get_pronunciation")
 		return -1
 
 def get_meta_from_wiki(wiki, entry):
@@ -194,9 +199,7 @@ def get_meta_from_wiki(wiki, entry):
 	p = titlediv[0].xpath('descendant::p')
 	if len(p) != 0:
 
-		p = titlediv[0].xpath('descendant::p')
-
-		#print len(p)
+		
 		meta = p[0].text_content().encode("utf-8");
 		#print meta
 		#start = meta.find('、')
