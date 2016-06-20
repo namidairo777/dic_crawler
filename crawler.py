@@ -228,9 +228,9 @@ if __name__ == "__main__":
 	entry_file = "crawler entry.csv"
 
 	print ("start")
-	time_start = time.time();
+	#time_start = time.time();
 	# 10 minutes to crawl
-	if int(time.time()-time_start) != 60*10:
+	#if int(time.time()-time_start) != 60*10:
 		news_rss = []
 		sentences = []
 
