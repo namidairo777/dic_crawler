@@ -141,7 +141,7 @@ def check_entry(entries):
 				data.append(entry[1])
 				data.append("meta");
 				#print(data)
-				##write_add_csv(new_meta_file, data)	
+				write_add_csv(new_meta_file, data)	
 				i = i+1
 				temp = entry[0]
 
